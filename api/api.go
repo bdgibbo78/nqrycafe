@@ -33,7 +33,7 @@ type APIHandler interface {
 type APIEndpoint struct {
 
     // A handler to handle client requests
-	handler APIHandler
+    handler APIHandler
 }
 
 func ServeHTTP(handler APIHandler) {
@@ -41,21 +41,19 @@ func ServeHTTP(handler APIHandler) {
     endpoint := APIEndpoint{handler: handler}
 
     router := mux.NewRouter()
-
-	router.HandleFunc("/api/v1/inventory", endpoint.InventoryHandler)
-    router.HandleFunc("/api/v1/order/{ptype}", endpoint.CoffeeHandler)
-
+    router.HandleFunc("/api/v1/inventory", endpoint.InventoryHandler)
+    router.HandleFunc("/api/v1/order/{ptype}", endpoint.OrderHandler)
     http.Handle("/", router)
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+    log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 func (self *APIEndpoint) InventoryHandler(w http.ResponseWriter, req *http.Request) {
     if req.Method != http.MethodGet {
-		// Sync requests must be GET
+        // Sync requests must be GET
         w.WriteHeader(http.StatusNotAcceptable)
-		return
-	}
+        return
+    }
 
     inventory, err := self.handler.GetInventory()
     if err != nil {
@@ -70,22 +68,22 @@ func (self *APIEndpoint) InventoryHandler(w http.ResponseWriter, req *http.Reque
     fmt.Fprintf(w, string(s))
 }
 
-func (self *APIEndpoint) CoffeeHandler(w http.ResponseWriter, req *http.Request) {
+func (self *APIEndpoint) OrderHandler(w http.ResponseWriter, req *http.Request) {
     if req.Method != http.MethodPost {
-		// Sync requests must be POST
+        // Sync requests must be POST
         w.WriteHeader(http.StatusNotAcceptable)
-		return
-	}
+        return
+    }
 
     ct := req.Header.Get("Content-Type")
-	if ct != "application/json" {
+    if ct != "application/json" {
         log.Print("Error: not a JSON request")
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
+        w.WriteHeader(http.StatusBadRequest)
+        return
+    }
 
     vars := mux.Vars(req)
-	pType := vars["ptype"]
+    pType := vars["ptype"]
 
     // Get the object to be decoded
     product, err := self.handler.GetProduct(pType)
