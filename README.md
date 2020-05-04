@@ -11,18 +11,27 @@ with the state of the system being accessed via the API.
 
 ## Build and Run
 Make sure that Go has been installed.
-`> cd cafe/
+```
+> cd cafe/
 > go build
-> ./cafe`
+> ./cafe
+```
 
 Open a browser and navigate to **http://localhost:8080/api/v1/inventory**
 
 ## Design Details
 The design is broken down into 4 modules plus the top level main function (cafe/main.go)
 to provide the entry point to the application. This design was adopted as it breaks down the
-solution into smaller chunks that are easier to maintain, extend and test. By providing
+solution into smaller chunks that are easier to maintain and test. By providing
 "minimally complete" interfaces to each module, we can ensure the data flow between them is
 consistent and optimized.
+
+Whilst our cafe only sells coffee at the moment, we think that extra products will need to be
+added in the near future, so we require a design that allows us to easily add support for this
+without changing any of the existing code. Put simply, we want to be able to create new products from a set of pre-defined models - the design should be flexible enough so that any
+request for that product is handled by existing code.
+
+By default, our application has support for coffee product orders defined in **pos/coffee.go**. To be able to support, say food, in our cafe, we should be able to define a "food" product (**pos/food.go** for example) and ensure that all items required to order food are available in the inventory (DataStore).  
 
 The modules can be found in the associated folders and are described below.
 
@@ -36,14 +45,14 @@ category.
 
 ### DataStore (datastore/datastore.go)
 The DataStore module provides a convenient generic interface that allows us to store
-persistent model data. It contains an abtract **DataStore** interface and can include any
+persistent model data. It contains an abstract **DataStore** interface and can include any
 number of concrete implementations of persistent data storage.
 For example, we are able to provide implementations to support databases (PostgreSQL, MongoDB etc) or a simple file based data store depending on the customer requirements. Implementations
 of these is beyond the scope of this task. However, a **TestStore** object conforming to the **DataStore** interface is provided for demonstrating its usage as well as allowing us to easily test the system.
 
 ### Point of Sale (pos/\*.go)
 The PoS module contains the business logic for our application. It includes structures
-describing available **Products** and **Transactions** that allows our application
+describing available **Products** and client **Transactions** that allows our application
 to receive orders, calculate the total cost and return it to the client. This module
 also contains the unique products sold by our cafe. In our example, we define a **Coffee**
 object (pos/coffee.go) which conforms to the **Product** interface and allows us to
@@ -63,25 +72,28 @@ calculate the total and return it back to the **APIEndpoint** for encoding befor
 back to the client.
 
 ## Testing  
-This project contains three levels of tests that can be run to demonstrate that the system works as expected and that the calculated costs are correct.
+This project contains a series of tests that can be run to demonstrate that the system works as expected and that the calculated costs are correct.
 
 ### Level 1 - Unit Testing
 Level 1 tests are used to test individual objects (units) to ensure integrity. This is the
 foundation of our testing because any faults found in the code at this level can either be exacerbated or hidden by upper layers in the system.
-In our project, we define a test that tests the integrity of our datastore so that we are confident that get out precisely what we put into it. To run the datastore test (datastore/datastore_test.go):
-`> cd datastore
-> go test`
+In our project, we define a test that tests the integrity of our datastore so that we are confident that we get out precisely what we put into it. To run the datastore test (datastore/datastore_test.go):
+```
+> cd datastore
+> go test
+```
 
 ### Level 2 - Component/System Testing
-Level 2 tests are used to test components comprised of a number units working as a system. In
+Level 2 tests are used to test components comprised of a number of units working as a system. In
 our project, we want to ensure that the business logic that calculates the total cost of a coffee
 available in our datastore (inventory) is free of any errors. To test the costs of a series
 of coffees (pos/coffee_test.go):
-`> cd pos
-> go test`
+```
+> cd pos
+> go test
+```
 
 ### Level 3 - Integration/API Testing
-Given that we have high confidence in our code by extensive testing at levels 1 and 2, we can
-now test our interactions with our service by testing our API. This will require starting
-the application as a service and connecting up a simple client to generate requests.
+Assuming that we have a high level of confidence in our code by testing extensively at levels 1 and 2, we can now test our interactions with our service by testing our API.
+This will require starting the application as a service and connecting up a simple client to generate requests.
 This is considered beyond the scope of this task.
