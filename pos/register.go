@@ -19,11 +19,13 @@ type Product interface {
 //
 type Register struct {
     products map[string]interface{}
+    transactionId int
 }
 
 func MakeRegister() *Register {
     reg := Register{
         products: make(map[string]interface{}),
+        transactionId: 0,
     }
     reg.init()
     return &reg
@@ -33,6 +35,11 @@ func (self *Register) init() {
     self.products["coffee"] = NewCoffee
 
     // Register new products here
+}
+
+func (self *Register) nextTransactionId() int {
+    self.transactionId += 1
+    return self.transactionId
 }
 
 func (self *Register) NewProduct(pType string) (Product, error) {

@@ -56,7 +56,7 @@ func (self *Controller) GetProduct(pType string) (Product, error) {
 //
 func (self *Controller) HandleProductOrder(product Product) (*Sale, error) {
 
-    sale := NewSale(10, 0.0)
+    sale := NewSale(self.register.nextTransactionId(), 0.0)
 
     // product is an interface to a Product which can be of any type that conforms
     // to that interface.
@@ -67,34 +67,3 @@ func (self *Controller) HandleProductOrder(product Product) (*Sale, error) {
     }
     return nil, err
 }
-
-//
-// Handle a transaction from the client. Return a Sale object or an error on failure.
-//
-/*
-func (self *Controller) HandleTransaction(transaction Transaction) (Sale, error) {
-
-    sale := Sale{TransactionId: transaction.Id, Cost: 0.0}
-
-    // Calculate the total cost given the current inventory
-    var total float32 = 0.0
-    for producttype, products := range transaction.Order.Products {
-        for _, product := range products {
-
-            //self.register.MakeProduct(producttype)
-
-            // product is an interface to a Product which can be of any type that conforms
-            // to that interface.
-            t, err := product.GetTotal(self.datastore)
-            if err != nil {
-                return sale, err
-            }
-            total += t
-        }
-    }
-
-    // Otherwise, update our sale and return it
-    sale.Cost = total
-    return sale, nil
-}
-*/
