@@ -110,4 +110,9 @@ Assuming that we have a high level of confidence in our code by testing extensiv
 and 2, we can now test our interactions with our service by testing our API.
 This will require starting the application as a service and connecting up a simple client to
 generate requests.
-This is considered beyond the scope of this task.
+Such a client has been created in urlclient/urlclient.go and can be run as a separate process:
+```
+> cd urlclient
+> go build
+> ./urlclient
+```

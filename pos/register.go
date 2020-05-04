@@ -1,6 +1,7 @@
 package pos
 
 import (
+    "errors"
     "../datastore"
 )
 
@@ -44,12 +45,16 @@ func (self *Register) nextTransactionId() int {
 
 func (self *Register) NewProduct(pType string) (Product, error) {
     fn, ok := self.products[pType]
-    if ok {
-        c, _ := fn.(func() Product)
-        obj := c()
-        return obj, nil
+    if !ok {
+        return nil, errors.New("Product '" + pType + "' does not exist in the register")
     }
-    return nil, nil
+
+    c, ok := fn.(func() Product)
+    if !ok {
+        return nil, errors.New("Product '" + pType + "' does not conform to Product")
+    }
+    obj := c()
+    return obj, nil
 }
 
 //
