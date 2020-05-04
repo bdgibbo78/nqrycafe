@@ -57,3 +57,21 @@ func TestInvalidCoffee(t *testing.T) {
     assertEqual(t, cost, float32(0.0))
     assertEqual(t, err.Error(), "Item with type 'instant' does not exist")
 }
+
+/*
+func TestCoffeeTransaction(t *testing.T) {
+
+    db := datastore.MakeTestStore()
+    _ = db.Init()
+    c, _ := MakeController(&db)
+
+    trans := MakeTransaction()
+
+    sale, err := c.HandleTransaction(trans)
+    if err != nil {
+        fmt.Printf("Error: %e\n", err)
+    }
+
+    fmt.Printf("Cost: %f\n", sale.Cost)
+}
+*/

@@ -5,8 +5,9 @@ import (
     "log"
     "fmt"
     "encoding/json"
-
     "../pos"
+
+    "github.com/gorilla/mux"
 )
 
 //
@@ -18,8 +19,11 @@ type APIHandler interface {
     // Get the current inventory to return to clients to render
     GetInventory() (interface{}, error)
 
-    // Handle a client transaction and return an interface to the client
-    HandleTransaction(transaction pos.Transaction) (interface{}, error)
+    // Get the Product of type given by 'ptype' or error on failure
+    GetProduct(pType string) (pos.Product, error)
+
+    // Handle a product order from the client returning a Sale or error on failure
+    HandleProductOrder(product pos.Product) (*pos.Sale, error)
 }
 
 //
@@ -36,8 +40,12 @@ func ServeHTTP(handler APIHandler) {
 
     endpoint := APIEndpoint{handler: handler}
 
-	http.HandleFunc("/api/v1/inventory", endpoint.InventoryHandler)
-    http.HandleFunc("/api/v1/transaction", endpoint.TransactionHandler)
+    router := mux.NewRouter()
+
+	router.HandleFunc("/api/v1/inventory", endpoint.InventoryHandler)
+    router.HandleFunc("/api/v1/order/{ptype}", endpoint.CoffeeHandler)
+
+    http.Handle("/", router)
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
@@ -62,7 +70,7 @@ func (self *APIEndpoint) InventoryHandler(w http.ResponseWriter, req *http.Reque
     fmt.Fprintf(w, string(s))
 }
 
-func (self *APIEndpoint) TransactionHandler(w http.ResponseWriter, req *http.Request) {
+func (self *APIEndpoint) CoffeeHandler(w http.ResponseWriter, req *http.Request) {
     if req.Method != http.MethodPost {
 		// Sync requests must be POST
         w.WriteHeader(http.StatusNotAcceptable)
@@ -76,17 +84,21 @@ func (self *APIEndpoint) TransactionHandler(w http.ResponseWriter, req *http.Req
 		return
 	}
 
-    // Decode the JSON post into a transaction object
-    transaction := pos.MakeTransaction()
+    vars := mux.Vars(req)
+	pType := vars["ptype"]
+
+    // Get the object to be decoded
+    product, err := self.handler.GetProduct(pType)
+
     decoder := json.NewDecoder(req.Body)
-    err := decoder.Decode(&transaction)
+    err = decoder.Decode(product)
     if err != nil {
         log.Printf("Decoding error: %e", err)
         w.WriteHeader(http.StatusBadRequest)
         return
     }
 
-    sale, err := self.handler.HandleTransaction(transaction)
+    sale, err := self.handler.HandleProductOrder(product)
     if err != nil {
         log.Printf("Transaction error: %e", err)
         w.WriteHeader(http.StatusInternalServerError)

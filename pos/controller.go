@@ -12,6 +12,9 @@ type Controller struct {
 
     // The datastore to use for this controller
     datastore datastore.DataStore
+
+    // The Register for this Controller
+    register *Register
 }
 
 //
@@ -27,6 +30,7 @@ func MakeController(datastore datastore.DataStore) (*Controller, error) {
 
     controller := Controller{
         datastore: datastore,
+        register: MakeRegister(),
     }
     return &controller, nil
 }
@@ -42,27 +46,55 @@ func (self *Controller) GetInventory() (interface{}, error) {
     return inventory, nil
 }
 
+func (self *Controller) GetProduct(pType string) (Product, error) {
+
+    return self.register.NewProduct(pType)
+}
+
 //
 // Handle a transaction from the client. Return a Sale object or an error on failure.
 //
-func (self *Controller) HandleTransaction(transaction Transaction) (interface{}, error) {
+func (self *Controller) HandleProductOrder(product Product) (*Sale, error) {
+
+    sale := NewSale(10, 0.0)
+
+    // product is an interface to a Product which can be of any type that conforms
+    // to that interface.
+    t, err := product.GetTotal(self.datastore)
+    if err == nil {
+        sale.Cost = t
+        return sale, nil
+    }
+    return nil, err
+}
+
+//
+// Handle a transaction from the client. Return a Sale object or an error on failure.
+//
+/*
+func (self *Controller) HandleTransaction(transaction Transaction) (Sale, error) {
 
     sale := Sale{TransactionId: transaction.Id, Cost: 0.0}
 
     // Calculate the total cost given the current inventory
     var total float32 = 0.0
-    for _, product := range transaction.Order.Products {
+    for producttype, products := range transaction.Order.Products {
+        for _, product := range products {
 
-        // product is an interface to a Product which can be of any type that conforms
-        // to that interface.
-        t, err := product.GetTotal(self.datastore)
-        if err != nil {
-            return 0.0, err
+            //self.register.MakeProduct(producttype)
+
+            // product is an interface to a Product which can be of any type that conforms
+            // to that interface.
+            t, err := product.GetTotal(self.datastore)
+            if err != nil {
+                return sale, err
+            }
+            total += t
         }
-        total += t
     }
 
     // Otherwise, update our sale and return it
     sale.Cost = total
     return sale, nil
 }
+*/

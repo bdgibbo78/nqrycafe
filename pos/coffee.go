@@ -17,6 +17,10 @@ type Coffee struct {
     Cond model.OrderItemList
 }
 
+func NewCoffee() *Coffee {
+    return &Coffee{}
+}
+
 func MakeCoffee(brand model.ItemType, prep model.ItemType, size model.ItemType, conds []model.ItemType) Coffee {
     coffee := Coffee{
         Type: model.OrderItem{CategoryId: "coffeetype", ItemType: brand},

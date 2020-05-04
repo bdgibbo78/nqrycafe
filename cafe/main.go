@@ -24,6 +24,4 @@ func main() {
 
     // Finally, start serving HTTP JSON API using our controller
     api.ServeHTTP(controller)
-
-
 }
